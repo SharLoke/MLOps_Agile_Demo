@@ -1,0 +1,42 @@
+name: CI/CD - Iris Model
+
+# Runs on every push and pull request to main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-and-deliver:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Prepare data
+        run: python src/data_prep.py
+
+      - name: Run automated tests
+        run: pytest -v
+
+      - name: Train model and write accuracy report
+        run: python src/iris_demo.py
+
+      - name: Deliver model and report
+        uses: actions/upload-artifact@v4
+        with:
+          name: iris-model
+          path: |
+            models/iris_decision_tree.joblib
+            docs/Accuracy_Report.txt
